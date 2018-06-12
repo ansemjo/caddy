@@ -1,0 +1,12 @@
+:80
+#tls ../cert ../key
+
+root /srv
+browse
+
+log stdout
+errors stderr
+
+cgi /ks/*.sh {root}{match}
+cgi /ks/*.py {root}{match}
+
