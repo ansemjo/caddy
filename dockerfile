@@ -1,4 +1,10 @@
-FROM alpine
+# Copyright 2018 Anton Semjonov
+# Licensed under the MIT License
+
+FROM alpine:3.7
+
+LABEL maintainer="Anton Semjonov <anton@semjonov.de>"
+LABEL license="MIT License"
 
 RUN echo 'install build and runtime dependencies ...' \
   && apk add --no-cache \
