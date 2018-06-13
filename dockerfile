@@ -1,48 +1,35 @@
 FROM alpine
 
-ARG arch=amd64
-ARG plugins=http.cgi
-ARG telemetry=off
-ARG license=personal
-
-RUN apk add \
-    --no-cache \
-    gnupg \
-    libcap \
-    python2 \
-    python3 \
-  && cd /dev/shm \
-  && mkdir gpghome \
-  && gpg \
-    --keyserver ha.pool.sks-keyservers.net \
-    --recv-keys 65760C51EDEA2017CEA2CA15155B6D79CA56EA34 \
-  && wget \
-    --output-document caddy.tar.gz \
-    --header "Accept: application/tar+bzip2" \
-    "https://caddyserver.com/download/linux/$arch?plugins=$plugins&license=$license&telemetry=$telemetry" \
-  && wget \
-    --output-document caddy.tar.gz.asc \
-    --header "Accept: text/plain" \
-    "https://caddyserver.com/download/linux/$arch/signature?plugins=$plugins&license=$license&telemetry=$telemetry" \
-  && gpg \
-    --verify caddy.tar.gz.asc \
-  && tar xz \
-    -C /usr/local/bin \
-    -f caddy.tar.gz \
-    caddy \
-  && caddy --version \
-  && setcap \
-    cap_net_bind_service=+ep \
-    /usr/local/bin/caddy \
-  && apk del \
-    gnupg \
-    libcap \
-    2>/dev/null \
-  && rm -rf ~/.gnupg \
-  && mkdir -p /srv
+RUN echo 'install build and runtime dependencies ...' \
+  && apk add --no-cache \
+    git go libcap musl-dev \
+    python2 python3 \
+  && export GOPATH="/go" \
+  && echo 'checkout sources ...' \
+  && go get -u github.com/mholt/caddy \
+  && go get -u github.com/caddyserver/builds \
+  && go get -u github.com/jung-kurt/caddy-cgi \
+  && cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
+  && echo 'patch run.go ...' \
+  && sed -i 's/\(enableTelemetry = \)true/\1false/' caddymain/run.go \
+  && sed -i $'/caddy\/caddyhttp/a\ \t_ "github.com/jung-kurt/caddy-cgi"' caddymain/run.go \
+  && echo 'build binary ...' \
+  && go run build.go \
+  && setcap cap_net_bind_service=+ep caddy \
+  && mv caddy /usr/local/bin/ \
+  && echo 'remove build dependencies ...' \
+  && apk del 2>/dev/null \
+    git go libcap musl-dev \
+  && cd / \
+  && rm -rf "$GOPATH" \
+  && mkdir -p /srv \
+  && caddy -version
 
 WORKDIR /srv
 USER nobody
+
+COPY ["index.html", "/srv/"]
+COPY ["caddyfile", "/etc/"]
 
 ENTRYPOINT ["/usr/local/bin/caddy"]
 CMD ["-conf", "/etc/caddyfile"]
