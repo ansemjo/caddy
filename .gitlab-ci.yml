@@ -2,7 +2,7 @@ image: docker:latest
 
 variables:
   IMAGE: $CI_REGISTRY_IMAGE
-  SLUG: $CI_COMMIT_REF_SLUG
+  NAME: $CI_COMMIT_REF_NAME
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
@@ -10,7 +10,7 @@ before_script:
 build:
   stage: build
   script:
-    - docker build -t $IMAGE:$SLUG .
-    - docker tag $IMAGE:$SLUG $IMAGE:latest
-    - docker push $IMAGE:$SLUG
+    - docker build -t $IMAGE:$NAME .
+    - docker tag $IMAGE:$NAME $IMAGE:latest
+    - docker push $IMAGE:$NAME
     - docker push $IMAGE:latest
