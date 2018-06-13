@@ -1,8 +1,5 @@
 image: docker:latest
 
-services:
-  - docker:dind
-
 variables:
   IMAGE: $CI_REGISTRY_IMAGE
   SLUG: $CI_COMMIT_REF_SLUG
