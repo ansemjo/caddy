@@ -1,5 +1,5 @@
-:80
-#tls ../cert ../key
+http:// #, https://
+#tls /run/tls.crt /run/tls.key
 
 root /srv
 browse
@@ -10,3 +10,5 @@ errors stderr
 cgi /ks/*.sh {root}{match}
 cgi /ks/*.py {root}{match}
 
+on startup /usr/sbin/in.tftpd --listen --verbose --secure /srv/tftp
+on shutdown /usr/bin/killall -q -INT in.tftpd
