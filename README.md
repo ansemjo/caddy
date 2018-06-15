@@ -1,11 +1,12 @@
-# docker-caddy
+# docker-caddy-tftpd
 
-This is a minimal Docker image with [caddy] and [cgi support].
-It was created to be used as a very simple HTTP file server for PXE booting and
-kickstarting Linux systems.
+This is a minimal Docker image containing [caddy] with [cgi support] and
+[dnsmasq] acting as a TFTP server. It was created to be used as a very simple
+file server for PXE booting and kickstarting Linux systems.
 
 [caddy]: https://caddyserver.com/
 [cgi support]: https://caddyserver.com/docs/http.cgi
+[dnsmasq]: http://thekelleys.org.uk/dnsmasq/doc.html
 
 ## building the image
 
@@ -20,33 +21,47 @@ Otherwise use:
 $ docker build -t caddy .
 ```
 
+If you have access to the Docker registry in this GitLab, there should be an
+automatically built image as a result of the [CI pipeline].
+
+[CI pipeline]: .gitlab-ci.yml
+
 ## running the image
 
-Example files [`caddyfile`] and [`index.html`] are included in the image, so you
-can simply run the following command and then access `http://localhost/`:
+Example files [`/etc/caddyfile`] and [`/srv/index.html`] are included in the
+image but the caddyfile expects TLS keys in `/run/tls.{crt,key}` by default.
+Since the user in the container is switched to `nobody`, you must ensure that
+`nobody` can access those keys. Alpine's `nobody` user has the UID `65534`,
+which is `nfsnobody` on CentOS and similar systems.
 
-[`caddyfile`]: caddyfile
-[`index.html`]: index.html
+Additionally, remember to publish the required ports: `dnsmasq` requires that
+you publish port `69/udp`. You could also take the shortcut and use
+`--network=host` of course.
+
+[`/etc/caddyfile`]: caddyfile
+[`/srv/index.html`]: index.html
+
+Files are served via HTTP from `/srv` by default and the caddyfile used by the
+preconfigured entrypoint and command is `/etc/caddyfile`. The TFTP root is in
+`/srv/tftp` by default.
 
 ```sh
-$ docker run --rm -d -p 80:80 caddy
-```
+ls -la ./tls
+total 8
+drwx--x---. 1 root nfsnobody   28 Jun 15 00:10 .
+drwxr-xr-x. 1 root root        50 Jun 15 02:17 ..
+-rw-r-----. 1 root nfsnobody 1915 Jun 14 23:47 tls.crt
+-rw-r-----. 1 root nfsnobody 1708 Jun 14 23:47 tls.key
 
-Files are served from `/srv` by default and the caddyfile used by the
-preconfigured entrypoint and command is `/etc/caddyfile`, so you can customize
-caddy by mounting volumes there:
-
-```sh
-$ docker run --rm -d \
+docker run --rm -d \
+    -p 69:69/udp \
     -p 80:80 \
-    -v /path/to/my/htdocs:/srv \
-    -v /path/to/my/caddyfile:/etc/caddyfile \
-    caddy
+    -p 443:443 \
+    -v $PWD/tls:/run \
+    -v /path/to/my/files:/srv \
+    caddy-tftpd
+336255aec9...83eb7b7b004991d
 ```
-
-Or enable `tls` in the caddyfile and mount your certificate and key at
-appropriate places if you are using selfsigned certificates. I'll leave that as
-an exercise to the reader.
 
 ## licensing
 
