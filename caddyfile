@@ -1,10 +1,10 @@
-http:// #, https://
-#tls /run/tls.crt /run/tls.key
+http://, https://
+tls /run/tls.crt /run/tls.key
 
 root /srv
 browse
 
-log stdout
+log    stdout
 errors stderr
 
 cgi /ks/*.sh {root}{match}
