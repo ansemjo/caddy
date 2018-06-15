@@ -9,7 +9,7 @@ LABEL license="MIT License"
 RUN echo 'install build and runtime dependencies ...' \
   && apk add --no-cache \
     git go libcap musl-dev \
-    python2 python3 tftp-hpa \
+    python2 python3 dnsmasq \
   && export GOPATH="/go" \
   && echo 'checkout sources ...' \
   && go get -u github.com/mholt/caddy \
@@ -22,7 +22,7 @@ RUN echo 'install build and runtime dependencies ...' \
   && echo 'build binary ...' \
   && go run build.go \
   && setcap cap_net_bind_service=+ep caddy \
-  && setcap cap_net_bind_service=+ep /usr/sbin/in.tftpd \
+  && setcap cap_net_bind_service=+ep /usr/sbin/dnsmasq \
   && mv caddy /usr/local/bin/ \
   && echo 'remove build dependencies ...' \
   && apk del 2>/dev/null \
