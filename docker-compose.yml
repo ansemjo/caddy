@@ -1,0 +1,20 @@
+---
+version: '3'
+services:
+
+  caddy-tftp:
+
+    container_name: pxemirror
+    image: ${PXEBOOT_IMAGE:-gitlab.app.rz.semjonov.de:445/docker/caddy-tftpd}:latest
+    logging:
+      driver: journald
+      options:
+        tag: pxemirror
+    network_mode: bridge
+    ports:
+      - '69:69/udp'
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./tls:/run:ro
+      - ./serve:/srv:ro
