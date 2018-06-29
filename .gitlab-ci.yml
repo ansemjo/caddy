@@ -1,7 +1,7 @@
 image: docker:latest
 
 variables:
-  IMAGE: $CI_REGISTRY_IMAGE
+  IMAGE: $CI_REGISTRY_IMAGE/ci
   REF: $CI_COMMIT_REF_NAME
 
 build:
