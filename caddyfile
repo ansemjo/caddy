@@ -1,7 +1,9 @@
 http://, https://
-tls /run/tls.crt /run/tls.key
+tls self_signed {
+  load {$CADDY_TLS_ROOT}
+}
 
-root /srv
+root {$CADDY_ROOT}
 browse
 
 log    stdout

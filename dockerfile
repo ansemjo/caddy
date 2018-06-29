@@ -24,13 +24,16 @@ RUN echo 'install build and runtime dependencies ...' \
   && apk del --purge build-deps 2>/dev/null \
   && cd / \
   && rm -rf "$GOPATH" \
-  && mkdir -p /srv \
   && caddy -version
 
-WORKDIR /srv
+ENV CADDY_ROOT      /srv
+ENV CADDY_TLS_ROOT  /run/tls
+
+RUN mkdir -p $CADDY_ROOT
+WORKDIR $CADDY_ROOT
 USER nobody
 
-COPY ["index.html", "/srv/"]
+COPY ["index.html", "$CADDY_ROOT/"]
 COPY ["caddyfile", "/etc/"]
 
 ENTRYPOINT ["/usr/local/bin/caddy"]
