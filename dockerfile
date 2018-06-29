@@ -8,7 +8,6 @@ LABEL license="MIT License"
 
 RUN echo 'install build and runtime dependencies ...' \
   && apk add --no-cache -t build-deps git go libcap musl-dev \
-  && apk add --no-cache -t runtime-deps python2 python3 \
   && export GOPATH="/go" \
   && echo 'checkout sources ...' \
   && go get -u github.com/mholt/caddy \
