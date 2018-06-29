@@ -25,14 +25,11 @@ RUN echo 'install build and runtime dependencies ...' \
   && rm -rf "$GOPATH" \
   && caddy -version
 
-ENV CADDY_ROOT      /srv
+ENV CADDY_UPSTREAM  myservice:8080
 ENV CADDY_TLS_ROOT  /run/tls
 
-RUN mkdir -p $CADDY_ROOT
-WORKDIR $CADDY_ROOT
 USER nobody
 
-COPY ["index.html", "$CADDY_ROOT/"]
 COPY ["caddyfile", "/etc/"]
 
 ENTRYPOINT ["/usr/local/bin/caddy"]
