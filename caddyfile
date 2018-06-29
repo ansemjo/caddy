@@ -3,8 +3,11 @@ tls self_signed {
   load {$CADDY_TLS_ROOT}
 }
 
-root {$CADDY_ROOT}
-browse
+root /dev/null
 
 log    stdout
 errors stderr
+
+proxy / {$CADDY_UPSTREAM} {
+  transparent
+}
