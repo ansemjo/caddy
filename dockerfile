@@ -7,9 +7,8 @@ LABEL maintainer="Anton Semjonov <anton@semjonov.de>"
 LABEL license="MIT License"
 
 RUN echo 'install build and runtime dependencies ...' \
-  && apk add --no-cache \
-    git go libcap musl-dev \
-    python2 python3 dnsmasq \
+  && apk add --no-cache -t build-deps git go libcap musl-dev \
+  && apk add --no-cache -t runtime-deps python2 python3 dnsmasq \
   && export GOPATH="/go" \
   && echo 'checkout sources ...' \
   && go get -u github.com/mholt/caddy \
@@ -25,8 +24,7 @@ RUN echo 'install build and runtime dependencies ...' \
   && setcap cap_net_bind_service=+ep /usr/sbin/dnsmasq \
   && mv caddy /usr/local/bin/ \
   && echo 'remove build dependencies ...' \
-  && apk del 2>/dev/null \
-    git go libcap musl-dev \
+  && apk del --purge build-deps 2>/dev/null \
   && cd / \
   && rm -rf "$GOPATH" \
   && mkdir -p /srv \
