@@ -18,6 +18,8 @@ RUN echo 'install build and runtime dependencies ...' \
   && echo 'patch run.go ...' \
   && sed -i 's/\(enableTelemetry = \)true/\1false/' caddymain/run.go \
   && sed -i $'/caddy\/caddyhttp/a\ \t_ "github.com/jung-kurt/caddy-cgi"' caddymain/run.go \
+  && echo 'patch build.go ...' \
+  && sed -i 's/ldflags}/ldflags + " -linkmode external -extldflags -static"}/' build.go \
   && echo 'build binary ...' \
   && go run build.go \
   && setcap cap_net_bind_service=+ep caddy \
@@ -29,15 +31,17 @@ RUN echo 'install build and runtime dependencies ...' \
   && rm -rf "$GOPATH" \
   && caddy -version
 
-ENV CADDY_ROOT      /srv
-ENV CADDY_TLS_ROOT  /run/tls
+FROM scratch
 
-RUN mkdir -p $CADDY_ROOT
+COPY --from=0 /usr/local/bin/caddy /caddy
+
+ENV CADDY_ROOT      /srv
+ENV CADDY_TLS_ROOT  /tls
+
 WORKDIR $CADDY_ROOT
-USER nobody
 
 COPY ["index.html", "$CADDY_ROOT/"]
-COPY ["caddyfile", "/etc/"]
+COPY ["caddyfile", "/"]
 
-ENTRYPOINT ["/usr/local/bin/caddy"]
-CMD ["-conf", "/etc/caddyfile"]
+ENTRYPOINT ["/caddy"]
+CMD ["-conf", "/caddyfile"]
