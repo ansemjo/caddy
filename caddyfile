@@ -9,8 +9,5 @@ browse
 log    stdout
 errors stderr
 
-cgi /ks/*.sh {root}{match}
-cgi /ks/*.py {root}{match}
-
-on startup /usr/sbin/dnsmasq --port=0 --enable-tftp --tftp-root=/srv/tftp
-on shutdown /usr/bin/killall -q -INT dnsmasq
+on startup /tftp -port=69 -dir=/srv/tftp
+on shutdown /killall -q -INT tftp
