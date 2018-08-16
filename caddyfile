@@ -9,5 +9,4 @@ browse
 log    stdout
 errors stderr
 
-on startup /tftp -port=69 -dir=/srv/tftp
-on shutdown /killall -q -INT tftp
+on startup /tftp -port=69 -dir=/srv
