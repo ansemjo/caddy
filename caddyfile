@@ -1,12 +1,15 @@
 http://, https://
-tls self_signed {
-  load {$CADDY_TLS_ROOT}
-}
+tls {$CADDY_TLS}/server.crt {$CADDY_TLS}/server.key
 
 root /dev/null
 
 log    stdout
 errors stderr
+
+redir {
+  if {scheme} is http
+  / https://{host}{uri}
+}
 
 proxy / {$CADDY_UPSTREAM} {
   transparent

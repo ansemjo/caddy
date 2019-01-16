@@ -1,36 +1,29 @@
 # Copyright 2018 Anton Semjonov
 # Licensed under the MIT License
 
-FROM alpine:3.7
+FROM golang:1.11-alpine as builder
 
 LABEL maintainer="Anton Semjonov <anton@semjonov.de>"
 LABEL license="MIT License"
 
-RUN echo 'install build and runtime dependencies ...' \
-  && apk add --no-cache -t build-deps git go libcap musl-dev \
-  && export GOPATH="/go" \
-  && echo 'checkout sources ...' \
+RUN echo 'checkout sources ...' \
+  && apk add --no-cache git \
   && go get -u github.com/mholt/caddy \
-  && go get -u github.com/caddyserver/builds \
-  && cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
+  && go get -u github.com/caddyserver/builds
+
+RUN cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
   && echo 'patch run.go ...' \
-  && sed -i 's/\(enableTelemetry = \)true/\1false/' caddymain/run.go \
+  && sed -i 's/\(enableTelemetry = \)true/\1false/I' caddymain/run.go \
   && echo 'build binary ...' \
   && go run build.go \
-  && setcap cap_net_bind_service=+ep caddy \
-  && mv caddy /usr/local/bin/ \
-  && echo 'remove build dependencies ...' \
-  && apk del --purge build-deps 2>/dev/null \
-  && cd / \
-  && rm -rf "$GOPATH" \
-  && caddy -version
+  && mv caddy /usr/local/bin/
 
-ENV CADDY_UPSTREAM  myservice:8080
-ENV CADDY_TLS_ROOT  /run/tls
+FROM alpine:latest
 
-USER nobody
-
-COPY ["caddyfile", "/etc/"]
+COPY --from=builder /usr/local/bin/caddy /usr/local/bin/caddy
+COPY ["caddyfile", "/"]
+ENV CADDY_UPSTREAM  application:8000
+ENV CADDY_TLS       /run/tls
 
 ENTRYPOINT ["/usr/local/bin/caddy"]
-CMD ["-conf", "/etc/caddyfile"]
+CMD ["-conf", "/caddyfile"]
