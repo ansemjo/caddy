@@ -2,7 +2,7 @@ RUNTIME := podman
 
 .PHONY: build
 build :
-	$(RUNTIME) build -t ansemjo/caddy:proxy .
+	$(RUNTIME) build -t ansemjo/caddy:proxy -f dockerfile --no-cache .
 
 .PHONY: push
 push :
