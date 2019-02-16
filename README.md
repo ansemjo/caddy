@@ -1,89 +1,115 @@
-# docker-caddy-tftpd
+# ansemjo/caddy
 
-This is a minimal Docker image containing [caddy] with [cgi support] and
-[dnsmasq] acting as a TFTP server. It was created to be used as a very simple
-file server for PXE booting and kickstarting Linux systems.
+A container image containing the [caddy] server in two variants:
+
+- [`Proxy`](#proxy) - completely standalone in a scratch base image for simple file server or
+  proxying scenarios
+- [`CGI`](#cgi) - with [CGI support] and in a Python base image for simple dynamic content
 
 [caddy]: https://caddyserver.com/
 [cgi support]: https://caddyserver.com/docs/http.cgi
-[dnsmasq]: http://thekelleys.org.uk/dnsmasq/doc.html
 
-## building the image
+## Proxy
 
-If you have [`make`] installed you can simply run `make` to build and tag the
-image as `caddy:latest`.
+This is the simpler image because it is intended to be used as a TLS proxy for internal services or
+as one element in a `docker-compose.yml` file. The `caddy` binary is compiled statically and
+stripped of all symbols, then placed in an empty `scratch` image.
 
-[`make`]: https://www.gnu.org/software/make/
+### Usage
 
-Otherwise use:
+Since its main purpose is a TLS proxy, the included `caddyfile` requires a certificate to be
+present, redirects all plaintext requests to use HTTPS and proxies every request to a backend
+application.
 
-```sh
-$ docker build -t caddy .
-```
-
-If you have access to the Docker registry in this GitLab, there should be an
-automatically built image as a result of the [CI pipeline].
-
-[CI pipeline]: .gitlab-ci.yml
-
-## running the image
-
-Example files [`/etc/caddyfile`] and [`/srv/index.html`] are included in the
-image but the caddyfile expects TLS keys in `/run/tls.{crt,key}` by default.
-Since the user in the container is switched to `nobody`, you must ensure that
-`nobody` can access those keys. Alpine's `nobody` user has the UID `65534`,
-which is `nfsnobody` on CentOS and similar systems.
-
-Additionally, remember to publish the required ports: `dnsmasq` requires that
-you publish port `69/udp`. You could also take the shortcut and use
-`--network=host` of course.
-
-[`/etc/caddyfile`]: caddyfile
-[`/srv/index.html`]: index.html
-
-Files are served via HTTP from `/srv` by default and the caddyfile used by the
-preconfigured entrypoint and command is `/etc/caddyfile`. The TFTP root is in
-`/srv/tftp` by default.
+- The location of the certificate can be customized with the `CADDY_TLS` environment variable. It is
+  `/tls` by default.
+- The proxied backend is given in `CADDY_UPSTREAM`.
 
 ```sh
-ls -la ./tls
-total 8
-drwx--x---. 1 root nfsnobody   28 Jun 15 00:10 .
-drwxr-xr-x. 1 root root        50 Jun 15 02:17 ..
--rw-r-----. 1 root nfsnobody 1915 Jun 14 23:47 tls.crt
--rw-r-----. 1 root nfsnobody 1708 Jun 14 23:47 tls.key
-
-docker run --rm -d \
-    -p 69:69/udp \
-    -p 80:80 \
-    -p 443:443 \
-    -v $PWD/tls:/run \
-    -v /path/to/my/files:/srv \
-    caddy-tftpd
-336255aec9...83eb7b7b004991d
+docker run -d \
+  -p 80:80 -p 443:443 \
+  -v $PWD/server.key:/tls/server.key \
+  -v $PWD/server.crt:/tls/server.crt \
+  -e CADDY_UPSTREAM=myapplication:8080 \
+  ansemjo/caddy:proxy
 ```
 
-## licensing
+If you want to do something else you can mount a custom configuration file over `/caddyfile`:
 
-### caddy
+```sh
+...
+  -v $PWD/caddyfile:/caddyfile \
+...
+```
 
-The caddy binary (`/usr/local/bin/caddy`) is built from sources and as such is
-licensed under the [Apache License 2.0]. Changes made to its sources can be seen
-in the [dockerfile]:
+### Building
 
-- disable Telemetry
-- include jung-kurt/caddy-cgi plugin
+```sh
+docker build -t caddy:proxy proxy/
+```
 
-[Apache License 2.0]: https://github.com/mholt/caddy/blob/master/LICENSE.txt
+## CGI
+
+This image is built with [jung-kurt/caddy-cgi](https://github.com/jung-kurt/caddy-cgi) compiled in
+to enable CGI support. That means you can have scripts on the server that will be used to construct
+the actual response dynamically without writing a full-blown application server. This has its
+drawbacks of course. But it works great for simple dynamically generated content like menu scripts
+for network booting with iPXE or Kickstart configurations, for example. To that end, this image
+plays together nicely with [ansemjo/ipxeboot](https://github.com/ansemjo/ipxeboot).
+
+### Usage
+
+The included `caddyfile` is much simpler and only uses plain HTTP by default. A small
+[Python sample](cgi/hello.py) is included.
+
+- Mount your files in the webroot at `/srv`.
+
+```sh
+docker run -d \
+  -p 80:80 \
+  -v $PWD/webroot:/srv \
+  ansemjo/caddy:cgi
+```
+
+If you don't mount anything in `/srv` and simply run a test with
+`docker run --rm -d -p 80:80 ansemjo/caddy:cgi` you can check that the CGI script is working by
+visiting `http://localhost/hello.py?name=Yourname`:
+
+```sh
+$ curl http://localhost/hello.py?name=$(whoami)
+// Saturday, 16. February 2019, 23:03:09
+Hello, ansemjo!
+```
+
+Again, if you want to configure how your CGI scripts work or enable other features, mount your own
+configuration over `/caddyfile` (see above).
+
+### Building
+
+```sh
+docker build -t caddy:cgi cgi/
+```
+
+## Licensing
+
+### Caddy
+
+The caddy binary (`/caddy`) is built from sources and as such is licensed under the [Apache License
+2.0]. Changes made to its sources can be seen in the [dockerfile] and include:
+
+- disable telemetry
+- include `jung-kurt/caddy-cgi` plugin
+
+[apache license 2.0]: https://github.com/mholt/caddy/blob/master/LICENSE.txt
 [dockerfile]: dockerfile#L14
 
-### caddy-cgi
+### Caddy-CGI
 
 The included [caddy-cgi] plugin is licensed under the [MIT License].
 
 [caddy-cgi]: https://github.com/jung-kurt/caddy-cgi
-[MIT License]: https://github.com/jung-kurt/caddy-cgi/blob/master/LICENSE
+[mit license]: https://github.com/jung-kurt/caddy-cgi/blob/master/LICENSE
 
-### this work
+### This project
 
 This work is licensed under the [MIT License](LICENSE).
