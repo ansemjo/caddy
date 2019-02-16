@@ -1,0 +1,9 @@
+http://:8080
+
+root /srv
+browse
+
+log    stdout
+errors stderr
+
+cgi /*.py {root}{match}

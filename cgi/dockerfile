@@ -1,0 +1,48 @@
+# Copyright 2018 Anton Semjonov
+# Licensed under the MIT License
+
+# ---------- build binary ----------
+
+# golang base image
+FROM golang:1.11-alpine as builder
+
+# fetch sources
+RUN echo 'checkout sources ...' \
+  && apk add --no-cache git binutils \
+  && go get -u github.com/mholt/caddy \
+  && go get -u github.com/caddyserver/builds \
+  && go get -u github.com/jung-kurt/caddy-cgi
+
+# apply patches
+RUN cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
+  && echo 'patch run.go ...' \
+  && sed -i 's/\(enableTelemetry = \)true/\1false/I' caddymain/run.go \
+  && sed -i $'/caddy\/caddyhttp/a\ \t_ "github.com/jung-kurt/caddy-cgi"' caddymain/run.go
+
+# build binary
+RUN cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
+  && echo 'build binary ...' \
+  && go run build.go \
+  && mv caddy /caddy \
+  && strip --strip-debug --strip-unneeded /caddy
+
+# ---------- runtime image ----------
+
+# use python base image
+FROM python:3-alpine
+
+# metadata
+LABEL maintainer="Anton Semjonov <anton@semjonov.de>"
+LABEL license="MIT License"
+
+# copy binary and prepare sample config
+COPY --from=builder /caddy /caddy
+COPY caddyfile /caddyfile
+COPY hello.py /srv/hello.py
+
+# change directory to webroot
+WORKDIR /srv
+
+# set entrypoint
+ENTRYPOINT ["/caddy"]
+CMD ["-conf", "/caddyfile"]
