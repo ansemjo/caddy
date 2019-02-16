@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2019 Anton Semjonov
+# Licensed under the MIT License
+
 # use cgi debugging
 import cgitb
 cgitb.enable()
