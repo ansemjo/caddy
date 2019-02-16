@@ -7,24 +7,21 @@
 FROM golang:1.11-alpine as builder
 
 # fetch sources
-RUN echo 'checkout sources ...' \
-  && apk add --no-cache git binutils \
+RUN apk add --no-cache git binutils \
   && go get -u github.com/mholt/caddy \
   && go get -u github.com/caddyserver/builds \
   && go get -u github.com/jung-kurt/caddy-cgi
 
 # apply patches
 RUN cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
-  && echo 'patch run.go ...' \
-  && sed -i 's/\(enableTelemetry = \)true/\1false/I' caddymain/run.go \
+  && sed -i 's/\(enableTelemetry = \)true/\1false/wI' caddymain/run.go \
   && sed -i $'/caddy\/caddyhttp/a\ \t_ "github.com/jung-kurt/caddy-cgi"' caddymain/run.go
 
 # build binary
 RUN cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
-  && echo 'build binary ...' \
   && go run build.go \
-  && mv caddy /caddy \
-  && strip --strip-debug --strip-unneeded /caddy
+  && strip --strip-debug --strip-unneeded caddy \
+  && mv caddy /caddy
 
 # ---------- runtime image ----------
 
