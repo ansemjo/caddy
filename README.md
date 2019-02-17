@@ -1,5 +1,7 @@
 # ansemjo/caddy
 
+[![](https://img.shields.io/docker/pulls/ansemjo/caddy.svg?style=flat-square)](https://hub.docker.com/r/ansemjo/caddy)
+
 A container image containing the [caddy] server in two variants:
 
 - [`Proxy`](#proxy) - completely standalone in a scratch base image for simple file server or
@@ -10,6 +12,9 @@ A container image containing the [caddy] server in two variants:
 [cgi support]: https://caddyserver.com/docs/http.cgi
 
 ## Proxy
+
+![](https://img.shields.io/microbadger/image-size/ansemjo/caddy/proxy.svg?style=flat-square)
+![](https://img.shields.io/microbadger/layers/ansemjo/caddy/proxy.svg?style=flat-square)
 
 This is the simpler image because it is intended to be used as a TLS proxy for internal services or
 as one element in a `docker-compose.yml` file. The `caddy` binary is compiled statically and
@@ -49,6 +54,9 @@ docker build -t caddy:proxy proxy/
 ```
 
 ## CGI
+
+![](https://img.shields.io/microbadger/image-size/ansemjo/caddy/cgi.svg?style=flat-square)
+![](https://img.shields.io/microbadger/layers/ansemjo/caddy/cgi.svg?style=flat-square)
 
 This image is built with [jung-kurt/caddy-cgi](https://github.com/jung-kurt/caddy-cgi) compiled in
 to enable CGI support. That means you can have scripts on the server that will be used to construct
