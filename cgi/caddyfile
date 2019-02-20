@@ -1,6 +1,6 @@
 http://
 
-root /srv
+root /srv/www
 browse
 
 log    stdout

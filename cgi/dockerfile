@@ -32,13 +32,13 @@ FROM python:3-alpine
 LABEL maintainer="Anton Semjonov <anton@semjonov.de>"
 LABEL license="MIT License"
 
+# change directory to webroot
+WORKDIR /srv/www
+
 # copy binary and prepare sample config
 COPY --from=builder /caddy /caddy
 COPY caddyfile /caddyfile
-COPY hello.py /srv/hello.py
-
-# change directory to webroot
-WORKDIR /srv
+COPY hello.py /srv/www/hello.py
 
 # set entrypoint
 ENTRYPOINT ["/caddy"]

@@ -70,16 +70,16 @@ plays together nicely with [ansemjo/ipxeboot](https://github.com/ansemjo/ipxeboo
 The included `caddyfile` is much simpler and only uses plain HTTP by default. A small
 [Python sample](cgi/hello.py) is included.
 
-- Mount your files in the webroot at `/srv`.
+- Mount your files in the webroot at `/srv/www`.
 
 ```sh
 docker run -d \
   -p 80:80 \
-  -v $PWD/webroot:/srv \
+  -v $PWD/webroot:/srv/www \
   ansemjo/caddy:cgi
 ```
 
-If you don't mount anything in `/srv` and simply run a test with
+If you don't mount anything in `/srv/www` and simply run a test with
 `docker run --rm -d -p 80:80 ansemjo/caddy:cgi` you can check that the CGI script is working by
 visiting `http://localhost/hello.py?name=Yourname`:
 
