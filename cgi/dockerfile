@@ -28,6 +28,9 @@ RUN cd "$GOPATH/src/github.com/mholt/caddy/caddy" \
 # use python base image
 FROM python:3-alpine
 
+# add useful tools for json/yaml parsing
+RUN apk add --no-cache jq && pip install yq
+
 # metadata
 LABEL maintainer="Anton Semjonov <anton@semjonov.de>"
 LABEL license="MIT License"
