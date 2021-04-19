@@ -1,9 +1,0 @@
-http://
-
-root /srv/www
-browse
-
-log    stdout
-errors stderr
-
-cgi /*.py {root}{match}
