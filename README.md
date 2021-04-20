@@ -2,9 +2,9 @@
 
 A container image containing the [caddy] server in two variants:
 
-- `ansemjo/caddy:plain` – completely standalone in a scratch base image for simple file server or
+- `ghcr.io/ansemjo/caddy:plain` – completely standalone in a scratch base image for simple file server or
   proxying scenarios
-- `ansemjo/caddy:cgi` – with [CGI support] in a Python base image for simple dynamic content
+- `ghcr.io/ansemjo/caddy:cgi` – with [CGI support] in a Python base image for simple dynamic content
 
 Both images can quickly be build with `build.sh` if you have a BuildKit-enabled Docker.
 
@@ -24,7 +24,7 @@ nothing more.
 
     docker run -d -p 8080:8080 \
       -v /path/to/files:/srv/www \
-      ansemjo/caddy:plain
+      ghcr.io/ansemjo/caddy:plain
 
 If you want to do something else you can also mount a custom configuration file
 over `/Caddyfile`:
@@ -32,7 +32,7 @@ over `/Caddyfile`:
     docker run -d -p 8080:8080 \
       -v /path/to/files:/srv/www \
       -v $PWD/Caddyfile:/Caddyfile \
-      ansemjo/caddy:plain
+      ghcr.io/ansemjo/caddy:plain
 
 
 ## `cgi`
@@ -56,7 +56,7 @@ Pyhton scripts and executes them with Python 3. A small sample is included in
 
     docker run -d -p 8080:8080 \
       -v /path/to/files:/srv/www \
-      ansemjo/caddy:cgi
+      ghcr.io/ansemjo/caddy:cgi
 
 Again, if you want to configure how your CGI scripts are handled or enable other
 features, mount your own configuration over `/Caddyfile` (see above).
