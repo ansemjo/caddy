@@ -5,7 +5,8 @@
 
 # golang base image and build requirements
 FROM golang:1.16-alpine as builder
-RUN apk add --no-cache git binutils musl-dev gcc upx
+RUN apk add --no-cache git binutils musl-dev gcc \
+  && { apk add --no-cache upx || true; }
 WORKDIR /build
 
 # copy main file and prepare to build
@@ -15,7 +16,7 @@ RUN go mod init caddy && go mod tidy
 # build and strip the binary
 RUN CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' \
   && strip --strip-debug --strip-unneeded caddy \
-  && upx caddy
+  && { upx caddy || true; }
 
 # ---------- runtimes ----------
 
