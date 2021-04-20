@@ -24,16 +24,30 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Build and Push Containers
+      - name: Build and Push - plain
         uses: docker/build-push-action@v2
-        id: docker_build
         with:
           target: plain
           tags: ghcr.io/${{ github.repository_owner }}/caddy:plain
           platforms: linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64,linux/ppc64le
           push: ${{ github.event_name != 'pull_request' }}
           labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.title=${{ github.event.repository.name }}-plain
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+      
+      - name: Build and Push - cgi
+        uses: docker/build-push-action@v2
+        with:
+          target: python
+          tags: ghcr.io/${{ github.repository_owner }}/caddy:cgi
+          platforms: linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64,linux/ppc64le
+          push: ${{ github.event_name != 'pull_request' }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}-cgi
             org.opencontainers.image.description=${{ github.event.repository.description }}
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
