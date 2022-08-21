@@ -11,7 +11,9 @@ WORKDIR /build
 
 # copy main file and prepare to build
 COPY main.go main.go
-RUN go mod init caddy && go mod tidy
+RUN go mod init caddy \
+  && go get github.com/antlr/antlr4/runtime/Go/antlr \
+  && go mod tidy
 
 # build and strip the binary
 RUN CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static"' \
