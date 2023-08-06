@@ -4,7 +4,7 @@
 # ---------- builders ----------
 
 # golang base image and build requirements
-FROM golang:1.18-alpine as builder
+FROM golang:1.20-alpine as builder
 RUN apk add --no-cache git binutils musl-dev gcc \
   && { apk add --no-cache upx || true; }
 WORKDIR /build
